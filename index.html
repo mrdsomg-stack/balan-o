@@ -1,197 +1,182 @@
-Com certeza! Para que os itens da imagem ("Obrigações com Pessoal", "Encargos Sociais", etc.) apareçam como subcategorias do "Passivo", é necessário ajustar a lógica do código JavaScript para lidar com a nova estrutura de dados.
-
-Abaixo está o código HTML completo com a lógica revisada. As principais mudanças estão nas funções abrirMes, abrirCategoria e na inclusão da nova função abrirSubcategoria.
-
 <!DOCTYPE html>
-
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Painel de Análises Contábeis</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      background-color: #f5f5f5;
-      color: #333;
-    }
-    h1, h2 {
-      color: #2c3e50;
-    }
-    button {
-      margin: 5px;
-      padding: 10px 15px;
-      background-color: #2c7;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    button:hover { background-color: #28a745; }
-    textarea {
-      width: 100%;
-      height: 80px;
-      margin-top: 5px;
-      margin-bottom: 15px;
-      border-radius: 5px;
-      padding: 5px;
-    }
-    .subitem {
-      margin-left: 20px;
-    }
-    #resultado {
-      background-color: #eef;
-      padding: 10px;
-      border-radius: 5px;
-      margin-top: 10px;
-    }
-  </style>
+  <meta charset="UTF-8">
+  <title>Painel de Análises Contábeis</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    h1, h2 {
+      color: #2c3e50;
+    }
+    button {
+      margin: 5px;
+      padding: 10px 15px;
+      background-color: #2c7;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover { background-color: #28a745; }
+    textarea {
+      width: 100%;
+      height: 80px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      padding: 5px;
+    }
+    .subitem {
+      margin-left: 20px;
+    }
+    #resultado {
+      background-color: #eef;
+      padding: 10px;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 <body>
-  <h1>Painel de Análises Contábeis</h1>
-  <div id="conteudo">
-    <button onclick="abrirCentro('SEDE')">SEDE</button>
-    <button onclick="abrirCentro('EMSERH')">EMSERH</button>
-  </div>
+  <h1>Painel de Análises Contábeis</h1>
+  <div id="conteudo">
+    <button onclick="abrirCentro('SEDE')">SEDE</button>
+    <button onclick="abrirCentro('EMSERH')">EMSERH</button>
+  </div>
 
-  <script>
-    let centroAtual = null;
-    let anoAtual = null;
-    let mesAtual = null;
-    let categoriaAtual = null;
-    let subcategoriaAtual = null;
+  <script>
+    let centroAtual = null;
+    let anoAtual = null;
+    let mesAtual = null;
+    let categoriaAtual = null;
 
-    const anos = ["2024","2025"];
-    const meses = [
-      {num:"01", nome:"Janeiro"}, {num:"02", nome:"Fevereiro"}, {num:"03", nome:"Março"},
-      {num:"04", nome:"Abril"}, {num:"05", nome:"Maio"}, {num:"06", nome:"Junho"},
-      {num:"07", nome:"Julho"}, {num:"08", nome:"Agosto"}, {num:"09", nome:"Setembro"},
-      {num:"10", nome:"Outubro"}, {num:"11", nome:"Novembro"}, {num:"12", nome:"Dezembro"}
-    ];
+    const anos = ["2024","2025"];
+    const meses = [
+      {num:"01", nome:"Janeiro"}, {num:"02", nome:"Fevereiro"}, {num:"03", nome:"Março"},
+      {num:"04", nome:"Abril"}, {num:"05", nome:"Maio"}, {num:"06", nome:"Junho"},
+      {num:"07", nome:"Julho"}, {num:"08", nome:"Agosto"}, {num:"09", nome:"Setembro"},
+      {num:"10", nome:"Outubro"}, {num:"11", nome:"Novembro"}, {num:"12", nome:"Dezembro"}
+    ];
 
-    const categorias = {
-      "Ativo": ["Conta Corrente", "Aplicação", "Termo", "Depósitos Judiciais"],
-      "Passivo": {
-        "Fornecedores Diversos": [],
-        "Obrigações com Pessoal": [
-          "Salários e Ordenados a Pagar","Férias","Rescisões a Pagar",
-          "Pensão Alimentícia a Pagar","Mensalidade Sindical a Pagar",
-          "Vale Transporte","Diárias de Viagens a pagar","Plano de Saúde a pagar",
-          "Plano Odontológico a pagar","Empréstimo Consignado a Pagar",
-          "Acordos Judiciais e trabalhistas","Convênios a Pagar"
-        ],
-        "Encargos Sociais": ["INSS a Recolher","FGTS a Recolher"],
-        "Impostos e Contribuições a Recolher": ["IRRF a Recolher sobre Salários","PIS a Recolher Sobre Salário"],
-        "Impostos Retidos a Recolher - PJ": ["ISS Retido a Recolher - PJ","IR Retido a Recolher - PJ","PIS/COFINS/CSLL Retido a Recolher - PJ"]
-      }
-    };
+    const categorias = {
+      "Ativo": ["Conta Corrente", "Aplicação", "Termo", "Depósitos Judiciais"],
+      "Passivo": [
+        "Fornecedores Diversos",
+        "Obrigações com Pessoal",
+        "Encargos Sociais",
+        "Impostos e Contribuições a Recolher",
+        "Impostos Retidos a Recolher - PJ"
+      ]
+    };
 
-    function abrirCentro(centro) {
-      centroAtual = centro;
-      const conteudo = document.getElementById("conteudo");
-      conteudo.innerHTML = <h2>${centro} - Selecione o ano</h2>;
-      anos.forEach(ano => {
-        conteudo.innerHTML += <button onclick="abrirAno('${ano}')">${ano}</button>;
-      });
-      conteudo.innerHTML += <br><br><button onclick="voltarInicio()">Voltar</button>;
-    }
+    const subcategorias = {
+      "Obrigações com Pessoal": [
+        "Salários e Ordenados a Pagar","Férias","Rescisões a Pagar",
+        "Pensão Alimentícia a Pagar","Mensalidade Sindical a Pagar",
+        "Vale Transporte","Diárias de Viagens a pagar","Plano de Saúde a pagar",
+        "Plano Odontológico a pagar","Empréstimo Consignado a Pagar",
+        "Acordos Judiciais e trabalhistas","Convênios a Pagar"
+      ],
+      "Encargos Sociais": ["INSS a Recolher","FGTS a Recolher"],
+      "Impostos e Contribuições a Recolher": ["IRRF a Recolher sobre Salários","PIS a Recolher Sobre Salário"],
+      "Impostos Retidos a Recolher - PJ": ["ISS Retido a Recolher - PJ","IR Retido a Recolher - PJ","PIS/COFINS/CSLL Retido a Recolher - PJ"]
+    };
 
-    function abrirAno(ano) {
-      anoAtual = ano;
-      const conteudo = document.getElementById("conteudo");
-      conteudo.innerHTML = <h2>${centroAtual} - ${ano} - Selecione o mês</h2>;
-      meses.forEach(m => {
-        conteudo.innerHTML += <button onclick="abrirMes('${m.num}')">${m.nome}</button>;
-      });
-      conteudo.innerHTML += <br><br><button onclick="abrirCentro(centroAtual)">Voltar</button>;
-    }
+    function abrirCentro(centro) {
+      centroAtual = centro;
+      const conteudo = document.getElementById("conteudo");
+      conteudo.innerHTML = `<h2>${centro} - Selecione o ano</h2>`;
+      anos.forEach(ano => {
+        conteudo.innerHTML += `<button onclick="abrirAno('${ano}')">${ano}</button>`;
+      });
+      conteudo.innerHTML += `<br><br><button onclick="voltarInicio()">Voltar</button>`;
+    }
 
-    function abrirMes(mes) {
-      mesAtual = mes;
-      const conteudo = document.getElementById("conteudo");
-      conteudo.innerHTML = <h2>${centroAtual} - ${anoAtual} - ${nomeDoMes(mes)}</h2>;
-      Object.keys(categorias).forEach(cat => {
-        conteudo.innerHTML += <button onclick="abrirCategoria('${cat}')">${cat}</button><br>;
-      });
-      conteudo.innerHTML += <br><button onclick="abrirAno('${anoAtual}')">Voltar</button>;
-    }
+    function abrirAno(ano) {
+      anoAtual = ano;
+      const conteudo = document.getElementById("conteudo");
+      conteudo.innerHTML = `<h2>${centroAtual} - ${ano} - Selecione o mês</h2>`;
+      meses.forEach(m => {
+        conteudo.innerHTML += `<button onclick="abrirMes('${m.num}')">${m.nome}</button>`;
+      });
+      conteudo.innerHTML += `<br><br><button onclick="abrirCentro(centroAtual)">Voltar</button>`;
+    }
 
-    function abrirCategoria(categoria) {
-      categoriaAtual = categoria;
-      const conteudo = document.getElementById("conteudo");
-      conteudo.innerHTML = <h2>${centroAtual} - ${anoAtual} - ${nomeDoMes(mesAtual)} - ${categoria}</h2>;
-     
-      // Verifica se a categoria é um objeto (tem subcategorias) ou um array (itens para preencher)
-      if (typeof categorias[categoria] === 'object' && categorias[categoria] !== null && !Array.isArray(categorias[categoria])) {
-        // Se for o "Passivo", mostra os botões de subcategorias
-        Object.keys(categorias[categoria]).forEach(subcategoria => {
-          conteudo.innerHTML += <button onclick="abrirSubcategoria('${categoria}', '${subcategoria}')">${subcategoria}</button><br>;
-        });
-        conteudo.innerHTML += <br><button onclick="abrirMes('${mesAtual}')">Voltar</button>;
-      } else {
-        // Se não, mostra os campos de texto
-        categorias[categoria].forEach(subitem => {
-          const chave = ${centroAtual}_${anoAtual}_${mesAtual}_${categoria}_${subitem};
-          const valor = localStorage.getItem(chave) || "";
-          conteudo.innerHTML += <div class="subitem">             <label>${subitem}</label><br>             <textarea id="${chave}">${valor}</textarea>           </div>;
-        });
-        conteudo.innerHTML += <button onclick="salvarCategoria()">Salvar</button> ;
-        conteudo.innerHTML += <button onclick="abrirMes('${mesAtual}')">Voltar</button>;
-        conteudo.innerHTML += <div id="resultado"></div>;
-      }
-    }
+    function abrirMes(mes) {
+      mesAtual = mes;
+      const conteudo = document.getElementById("conteudo");
+      conteudo.innerHTML = `<h2>${centroAtual} - ${anoAtual} - ${nomeDoMes(mes)}</h2>`;
+      Object.keys(categorias).forEach(cat => {
+        conteudo.innerHTML += `<button onclick="abrirCategoria('${cat}')">${cat}</button><br>`;
+      });
+      conteudo.innerHTML += `<br><button onclick="abrirAno('${anoAtual}')">Voltar</button>`;
+    }
 
-    function abrirSubcategoria(categoriaPai, subcategoria) {
-      subcategoriaAtual = subcategoria;
-      const conteudo = document.getElementById("conteudo");
-      conteudo.innerHTML = <h2>${centroAtual} - ${anoAtual} - ${nomeDoMes(mesAtual)} - ${subcategoria}</h2>;
-     
-      // Mostra os campos de texto da subcategoria selecionada
-      categorias[categoriaPai][subcategoria].forEach(item => {
-        const chave = ${centroAtual}_${anoAtual}_${mesAtual}_${subcategoria}_${item};
-        const valor = localStorage.getItem(chave) || "";
-        conteudo.innerHTML += <div class="subitem">           <label>${item}</label><br>           <textarea id="${chave}">${valor}</textarea>         </div>;
-      });
-     
-      conteudo.innerHTML += <button onclick="salvarSubcategoria()">Salvar</button> ;
-      conteudo.innerHTML += <button onclick="abrirCategoria('${categoriaPai}')">Voltar</button>;
-      conteudo.innerHTML += <div id="resultado"></div>;
-    }
+    function abrirCategoria(categoria) {
+      categoriaAtual = categoria;
+      const conteudo = document.getElementById("conteudo");
+      conteudo.innerHTML = `<h2>${centroAtual} - ${anoAtual} - ${nomeDoMes(mesAtual)} - ${categoria}</h2>`;
 
-    function salvarCategoria() {
-      // Lógica para salvar a categoria (se não tiver subcategorias)
-      categorias[categoriaAtual].forEach(subitem => {
-        const chave = ${centroAtual}_${anoAtual}_${mesAtual}_${categoriaAtual}_${subitem};
-        const valor = document.getElementById(chave).value;
-        localStorage.setItem(chave, valor);
-      });
-      document.getElementById("resultado").textContent = "Análise salva com sucesso!";
-    }
+      if(subcategorias[categoriaAtual]){
+        subcategorias[categoriaAtual].forEach(subitem => {
+          const chave = `${centroAtual}_${anoAtual}_${mesAtual}_${categoriaAtual}_${subitem}`;
+          const valor = localStorage.getItem(chave) || "";
+          conteudo.innerHTML += `<div class="subitem">
+            <label>${subitem}</label><br>
+            <textarea id="${chave}">${valor}</textarea>
+          </div>`;
+        });
+      } else {
+        categorias[categoriaAtual].forEach(subitem => {
+          const chave = `${centroAtual}_${anoAtual}_${mesAtual}_${categoriaAtual}_${subitem}`;
+          const valor = localStorage.getItem(chave) || "";
+          conteudo.innerHTML += `<div class="subitem">
+            <label>${subitem}</label><br>
+            <textarea id="${chave}">${valor}</textarea>
+          </div>`;
+        });
+      }
 
-    function salvarSubcategoria() {
-      // Lógica para salvar a subcategoria
-      const categoriaPai = Object.keys(categorias).find(key => categorias[key][subcategoriaAtual]);
-      categorias[categoriaPai][subcategoriaAtual].forEach(item => {
-        const chave = ${centroAtual}_${anoAtual}_${mesAtual}_${subcategoriaAtual}_${item};
-        const valor = document.getElementById(chave).value;
-        localStorage.setItem(chave, valor);
-      });
-      document.getElementById("resultado").textContent = "Análise salva com sucesso!";
-    }
+      conteudo.innerHTML += `<button onclick="salvarCategoria()">Salvar</button> `;
+      conteudo.innerHTML += `<button onclick="abrirMes('${mesAtual}')">Voltar</button>`;
+      conteudo.innerHTML += `<div id="resultado"></div>`;
+    }
 
-    function voltarInicio() {
-      centroAtual = null;
-      anoAtual = null;
-      mesAtual = null;
-      categoriaAtual = null;
-      subcategoriaAtual = null;
-      document.getElementById("conteudo").innerHTML =          <button onclick="abrirCentro('SEDE')">SEDE</button>         <button onclick="abrirCentro('EMSERH')">EMSERH</button>;
-    }
+    function salvarCategoria() {
+      if(subcategorias[categoriaAtual]){
+        subcategorias[categoriaAtual].forEach(subitem => {
+          const chave = `${centroAtual}_${anoAtual}_${mesAtual}_${categoriaAtual}_${subitem}`;
+          const valor = document.getElementById(chave).value;
+          localStorage.setItem(chave, valor);
+        });
+      } else {
+        categorias[categoriaAtual].forEach(subitem => {
+          const chave = `${centroAtual}_${anoAtual}_${mesAtual}_${categoriaAtual}_${subitem}`;
+          const valor = document.getElementById(chave).value;
+          localStorage.setItem(chave, valor);
+        });
+      }
+      document.getElementById("resultado").textContent = "Análise salva com sucesso!";
+    }
 
-    function nomeDoMes(numero) {
-      const m = meses.find(x => x.num === numero);
-      return m ? m.nome : numero;
-    }
-  </script>
+    function voltarInicio() {
+      centroAtual = null;
+      anoAtual = null;
+      mesAtual = null;
+      categoriaAtual = null;
+      document.getElementById("conteudo").innerHTML = `
+        <button onclick="abrirCentro('SEDE')">SEDE</button>
+        <button onclick="abrirCentro('EMSERH')">EMSERH</button>`;
+    }
 
+    function nomeDoMes(numero) {
+      const m = meses.find(x => x.num === numero);
+      return m ? m.nome : numero;
+    }
+  </script>
 </body>
 </html>
