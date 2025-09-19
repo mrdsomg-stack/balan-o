@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Análises de Balanço Patrimonial</title>
+  <title>Painel de Análises Contábeis</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -21,16 +21,17 @@
       border-radius: 5px;
       cursor: pointer;
     }
-    button:hover {
-      background-color: #28a745;
-    }
+    button:hover { background-color: #28a745; }
     textarea {
       width: 100%;
-      height: 120px;
-      padding: 8px;
-      margin-top: 10px;
-      margin-bottom: 10px;
+      height: 80px;
+      margin-top: 5px;
+      margin-bottom: 15px;
       border-radius: 5px;
+      padding: 5px;
+    }
+    .subitem {
+      margin-left: 20px;
     }
     #resultado {
       background-color: #eef;
@@ -41,7 +42,7 @@
   </style>
 </head>
 <body>
-  <h1>Centros de Custo</h1>
+  <h1>Painel de Análises Contábeis</h1>
   <div id="conteudo">
     <button onclick="abrirCentro('SEDE')">SEDE</button>
     <button onclick="abrirCentro('EMSERH')">EMSERH</button>
@@ -51,29 +52,37 @@
     let centroAtual = null;
     let anoAtual = null;
     let mesAtual = null;
+    let categoriaAtual = null;
 
-    const anos = ["2024", "2025"];
+    const anos = ["2024","2025"];
     const meses = [
-      {num:"01", nome:"Janeiro"},
-      {num:"02", nome:"Fevereiro"},
-      {num:"03", nome:"Março"},
-      {num:"04", nome:"Abril"},
-      {num:"05", nome:"Maio"},
-      {num:"06", nome:"Junho"},
-      {num:"07", nome:"Julho"},
-      {num:"08", nome:"Agosto"},
-      {num:"09", nome:"Setembro"},
-      {num:"10", nome:"Outubro"},
-      {num:"11", nome:"Novembro"},
-      {num:"12", nome:"Dezembro"}
+      {num:"01", nome:"Janeiro"}, {num:"02", nome:"Fevereiro"}, {num:"03", nome:"Março"},
+      {num:"04", nome:"Abril"}, {num:"05", nome:"Maio"}, {num:"06", nome:"Junho"},
+      {num:"07", nome:"Julho"}, {num:"08", nome:"Agosto"}, {num:"09", nome:"Setembro"},
+      {num:"10", nome:"Outubro"}, {num:"11", nome:"Novembro"}, {num:"12", nome:"Dezembro"}
     ];
+
+    const categorias = {
+      "Ativo": ["Conta Corrente", "Aplicação", "Termo", "Depósitos Judiciais"],
+      "Passivo": ["Fornecedores Diversos"],
+      "Obrigações com Pessoal": [
+        "Salários e Ordenados a Pagar","Férias","Rescisões a Pagar",
+        "Pensão Alimentícia a Pagar","Mensalidade Sindical a Pagar",
+        "Vale Transporte","Diárias de Viagens a pagar","Plano de Saúde a pagar",
+        "Plano Odontológico a pagar","Empréstimo Consignado a Pagar",
+        "Acordos Judiciais e trabalhistas","Convênios a Pagar"
+      ],
+      "Encargos Sociais": ["INSS a Recolher","FGTS a Recolher"],
+      "Impostos e Contribuições a Recolher": ["IRRF a Recolher sobre Salários","PIS a Recolher Sobre Salário"],
+      "Impostos Retidos a Recolher - PJ": ["ISS Retido a Recolher - PJ","IR Retido a Recolher - PJ","PIS/COFINS/CSLL Retido a Recolher - PJ"]
+    };
 
     function abrirCentro(centro) {
       centroAtual = centro;
       const conteudo = document.getElementById("conteudo");
       conteudo.innerHTML = `<h2>${centro} - Selecione o ano</h2>`;
       anos.forEach(ano => {
-        conteudo.innerHTML += `<button onclick="abrirAno('${ano}')">${ano}</button> `;
+        conteudo.innerHTML += `<button onclick="abrirAno('${ano}')">${ano}</button>`;
       });
       conteudo.innerHTML += `<br><br><button onclick="voltarInicio()">Voltar</button>`;
     }
@@ -83,27 +92,44 @@
       const conteudo = document.getElementById("conteudo");
       conteudo.innerHTML = `<h2>${centroAtual} - ${ano} - Selecione o mês</h2>`;
       meses.forEach(m => {
-        conteudo.innerHTML += `<button onclick="abrirMes('${m.num}')">${m.nome}</button> `;
+        conteudo.innerHTML += `<button onclick="abrirMes('${m.num}')">${m.nome}</button>`;
       });
       conteudo.innerHTML += `<br><br><button onclick="abrirCentro(centroAtual)">Voltar</button>`;
     }
 
     function abrirMes(mes) {
       mesAtual = mes;
-      const chave = `${centroAtual}_${anoAtual}_${mes}`;
       const conteudo = document.getElementById("conteudo");
-      const textoSalvo = localStorage.getItem(chave) || "";
-      conteudo.innerHTML = `<h2>${centroAtual} - ${anoAtual} - ${nomeDoMes(mes)}</h2>
-        <textarea id="analise">${textoSalvo}</textarea><br>
-        <button onclick="salvarAnalise()">Salvar</button>
-        <button onclick="abrirAno('${anoAtual}')">Voltar</button>
-        <div id="resultado"></div>`;
+      conteudo.innerHTML = `<h2>${centroAtual} - ${anoAtual} - ${nomeDoMes(mes)}</h2>`;
+      Object.keys(categorias).forEach(cat => {
+        conteudo.innerHTML += `<button onclick="abrirCategoria('${cat}')">${cat}</button><br>`;
+      });
+      conteudo.innerHTML += `<br><button onclick="abrirAno('${anoAtual}')">Voltar</button>`;
     }
 
-    function salvarAnalise() {
-      const texto = document.getElementById("analise").value;
-      const chave = `${centroAtual}_${anoAtual}_${mesAtual}`;
-      localStorage.setItem(chave, texto);
+    function abrirCategoria(categoria) {
+      categoriaAtual = categoria;
+      const conteudo = document.getElementById("conteudo");
+      conteudo.innerHTML = `<h2>${centroAtual} - ${anoAtual} - ${nomeDoMes(mesAtual)} - ${categoria}</h2>`;
+      categorias[categoria].forEach(subitem => {
+        const chave = `${centroAtual}_${anoAtual}_${mesAtual}_${categoria}_${subitem}`;
+        const valor = localStorage.getItem(chave) || "";
+        conteudo.innerHTML += `<div class="subitem">
+          <label>${subitem}</label><br>
+          <textarea id="${chave}">${valor}</textarea>
+        </div>`;
+      });
+      conteudo.innerHTML += `<button onclick="salvarCategoria()">Salvar</button> `;
+      conteudo.innerHTML += `<button onclick="abrirMes('${mesAtual}')">Voltar</button>`;
+      conteudo.innerHTML += `<div id="resultado"></div>`;
+    }
+
+    function salvarCategoria() {
+      categorias[categoriaAtual].forEach(subitem => {
+        const chave = `${centroAtual}_${anoAtual}_${mesAtual}_${categoriaAtual}_${subitem}`;
+        const valor = document.getElementById(chave).value;
+        localStorage.setItem(chave, valor);
+      });
       document.getElementById("resultado").textContent = "Análise salva com sucesso!";
     }
 
@@ -111,6 +137,7 @@
       centroAtual = null;
       anoAtual = null;
       mesAtual = null;
+      categoriaAtual = null;
       document.getElementById("conteudo").innerHTML = `
         <button onclick="abrirCentro('SEDE')">SEDE</button>
         <button onclick="abrirCentro('EMSERH')">EMSERH</button>`;
