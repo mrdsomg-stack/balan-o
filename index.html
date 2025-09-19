@@ -68,7 +68,7 @@
         const categorias = {
             "Ativo": ["Conta Corrente", "Aplicação", "Termo", "Depósitos Judiciais"],
             "Passivo": {
-                "Fornecedores Diversos": [],
+                "Fornecedores Diversos": ["Observações"],
                 "Obrigações com Pessoal": [
                     "Salários e Ordenados a Pagar", "Férias", "Rescisões a Pagar",
                     "Pensão Alimentícia a Pagar", "Mensalidade Sindical a Pagar",
@@ -147,16 +147,27 @@
             conteudo.innerHTML = `<h2>${centroAtual} - ${anoAtual} - ${nomeDoMes(mesAtual)} - ${subcategoria}</h2>`;
             
             const items = categorias[categoriaPai][subcategoria];
-            items.forEach(item => {
-                const chave = `${centroAtual}_${anoAtual}_${mesAtual}_${subcategoria}_${item}`;
+            if (items.length > 0) {
+                items.forEach(item => {
+                    const chave = `${centroAtual}_${anoAtual}_${mesAtual}_${subcategoria}_${item}`;
+                    const valor = localStorage.getItem(chave) || "";
+                    conteudo.innerHTML += `<div class="subitem">
+                        <label>${item}</label><br>
+                        <textarea id="${chave}">${valor}</textarea>
+                    </div>`;
+                });
+                conteudo.innerHTML += `<button onclick="salvarSubcategoria()">Salvar</button> `;
+            } else {
+                // Adiciona um campo de texto padrão para "Fornecedores Diversos"
+                const chave = `${centroAtual}_${anoAtual}_${mesAtual}_${subcategoria}_Observações`;
                 const valor = localStorage.getItem(chave) || "";
                 conteudo.innerHTML += `<div class="subitem">
-                    <label>${item}</label><br>
+                    <label>Observações</label><br>
                     <textarea id="${chave}">${valor}</textarea>
                 </div>`;
-            });
+                conteudo.innerHTML += `<button onclick="salvarSubcategoria()">Salvar</button> `;
+            }
             
-            conteudo.innerHTML += `<button onclick="salvarSubcategoria()">Salvar</button> `;
             conteudo.innerHTML += `<button onclick="abrirCategoria('${categoriaPai}')">Voltar</button>`;
             conteudo.innerHTML += `<div id="resultado"></div>`;
         }
@@ -172,11 +183,19 @@
 
         function salvarSubcategoria() {
             const categoriaPai = Object.keys(categorias).find(key => categorias[key][subcategoriaAtual]);
-            categorias[categoriaPai][subcategoriaAtual].forEach(item => {
-                const chave = `${centroAtual}_${anoAtual}_${mesAtual}_${subcategoriaAtual}_${item}`;
+            const items = categorias[categoriaPai][subcategoriaAtual];
+            if (items.length > 0) {
+                items.forEach(item => {
+                    const chave = `${centroAtual}_${anoAtual}_${mesAtual}_${subcategoriaAtual}_${item}`;
+                    const valor = document.getElementById(chave).value;
+                    localStorage.setItem(chave, valor);
+                });
+            } else {
+                // Lógica de salvamento para o caso de "Fornecedores Diversos"
+                const chave = `${centroAtual}_${anoAtual}_${mesAtual}_${subcategoriaAtual}_Observações`;
                 const valor = document.getElementById(chave).value;
                 localStorage.setItem(chave, valor);
-            });
+            }
             document.getElementById("resultado").textContent = "Análise salva com sucesso!";
         }
 
