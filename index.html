@@ -3,13 +3,100 @@
 <head>
   <meta charset="UTF-8">
   <title>Análises de Balanço Patrimonial</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    h1, h2 {
+      color: #2c3e50;
+    }
+    button {
+      margin: 5px;
+      padding: 10px 15px;
+      background-color: #2c7;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #28a745;
+    }
+    p {
+      background: #eef;
+      padding: 10px;
+      border-radius: 5px;
+    }
+  </style>
 </head>
 <body>
-  <h1>Centro de Custos</h1>
-  <ul>
-    <li><a href="sede.html">SEDE</a></li>
-    <li><a href="emserh.html">EMSERH</a></li>
-  </ul>
+  <h1>Centros de Custo</h1>
+  <div id="conteudo">
+    <button onclick="abrirCentro('SEDE')">SEDE</button>
+    <button onclick="abrirCentro('EMSERH')">EMSERH</button>
+  </div>
+
+  <script>
+    // Estrutura de análises (preencha os textos)
+    const analises = {
+      SEDE: {
+        "2024": { "01": "Janeiro/2024: análise SEDE", "02": "Fevereiro/2024: análise SEDE" },
+        "2025": { "01": "Janeiro/2025: análise SEDE" }
+      },
+      EMSERH: {
+        "2024": { "01": "Janeiro/2024: análise EMSERH" },
+        "2025": { "01": "Janeiro/2025: análise EMSERH" }
+      }
+    };
+
+    let centroAtual = null;
+    let anoAtual = null;
+
+    function abrirCentro(centro) {
+      centroAtual = centro;
+      const conteudo = document.getElementById("conteudo");
+      conteudo.innerHTML = `<h2>${centro} - Selecione o ano</h2>`;
+      const anos = Object.keys(analises[centro]);
+      anos.forEach(ano => {
+        conteudo.innerHTML += `<button onclick="abrirAno('${ano}')">${ano}</button> `;
+      });
+      conteudo.innerHTML += `<br><br><button onclick="voltarInicio()">Voltar</button>`;
+    }
+
+    function abrirAno(ano) {
+      anoAtual = ano;
+      const meses = Object.keys(analises[centroAtual][ano]);
+      const conteudo = document.getElementById("conteudo");
+      conteudo.innerHTML = `<h2>${centroAtual} - ${ano} - Selecione o mês</h2>`;
+      meses.forEach(mes => {
+        const nomeMes = nomeDoMes(mes);
+        conteudo.innerHTML += `<button onclick="verAnalise('${mes}')">${nomeMes}</button> `;
+      });
+      conteudo.innerHTML += `<br><br><button onclick="abrirCentro(centroAtual)">Voltar</button>`;
+    }
+
+    function verAnalise(mes) {
+      const texto = analises[centroAtual][anoAtual][mes];
+      const conteudo = document.getElementById("conteudo");
+      conteudo.innerHTML = `<h2>${centroAtual} - ${anoAtual} - ${nomeDoMes(mes)}</h2>
+                            <p>${texto}</p>
+                            <button onclick="abrirAno('${anoAtual}')">Voltar</button>`;
+    }
+
+    function voltarInicio() {
+      centroAtual = null;
+      anoAtual = null;
+      document.getElementById("conteudo").innerHTML = `<button onclick="abrirCentro('SEDE')">SEDE</button>
+                                                        <button onclick="abrirCentro('EMSERH')">EMSERH</button>`;
+    }
+
+    function nomeDoMes(numero) {
+      const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho",
+                     "Agosto","Setembro","Outubro","Novembro","Dezembro"];
+      return meses[parseInt(numero)-1];
+    }
+  </script>
 </body>
 </html>
