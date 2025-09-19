@@ -1,25 +1,43 @@
-const analises = {
-  sede: {
-    "2024-01": "Janeiro/2024: Resultado positivo, liquidez em alta.",
-    "2024-02": "Fevereiro/2024: Queda no ativo circulante, atenção aos fornecedores.",
-    "2025-01": "Janeiro/2025: Endividamento controlado, PL crescente."
-  },
-  emserh: {
-    "2024-01": "Janeiro/2024: Superávit no exercício, receitas acima da previsão.",
-    "2024-02": "Fevereiro/2024: Déficit causado por aumento de despesas administrativas.",
-    "2025-01": "Janeiro/2025: Custos hospitalares em alta, margem reduzida."
-  }
-};
+// Função principal: salvar e carregar análises no navegador
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("analiseForm");
+  if (!form) return; // Se não for página de análise, não faz nada
 
-function mostrarAnalise(cc) {
-  const ano = document.getElementById("ano").value;
-  const mes = document.getElementById("mes").value;
-  const chave = `${ano}-${mes}`;
-  const resultado = document.getElementById("resultado");
+  // Descobre se está em SEDE ou EMSERH (pelo título da página)
+  const centro = document.title.includes("SEDE") ? "SEDE" : "EMSERH";
 
-  if (analises[cc] && analises[cc][chave]) {
-    resultado.innerHTML = `<h2>Análise</h2><p>${analises[cc][chave]}</p>`;
-  } else {
-    resultado.innerHTML = "<p><em>Nenhuma análise encontrada para este período.</em></p>";
+  const anoInput = document.getElementById("ano");
+  const mesInput = document.getElementById("mes");
+  const textoInput = document.getElementById("texto");
+  const resultadoDiv = document.getElementById("resultado");
+
+  // Carregar análise salva quando ano/mês mudam
+  function carregarAnalise() {
+    const ano = anoInput.value;
+    const mes = mesInput.value;
+    if (!ano || !mes) return;
+
+    const chave = `${centro}_${ano}_${mes}`;
+    const analise = localStorage.getItem(chave);
+
+    textoInput.value = analise || "";
+    resultadoDiv.textContent = analise ? analise : "Nenhuma análise salva.";
   }
-}
+
+  anoInput.addEventListener("change", carregarAnalise);
+  mesInput.addEventListener("change", carregarAnalise);
+
+  // Salvar análise no localStorage
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const ano = anoInput.value;
+    const mes = mesInput.value;
+    const texto = textoInput.value;
+
+    const chave = `${centro}_${ano}_${mes}`;
+    localStorage.setItem(chave, texto);
+
+    resultadoDiv.textContent = texto || "Nenhuma análise salva.";
+    alert("Análise salva com sucesso!");
+  });
+});
