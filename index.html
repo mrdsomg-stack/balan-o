@@ -53,37 +53,31 @@
     let anoAtual = null;
     let mesAtual = null;
     let categoriaAtual = null;
+    let subcategoriaAtual = null;
 
-    const anos = ["2024","2025"];
+    const anos = ["2024", "2025"];
     const meses = [
-      {num:"01", nome:"Janeiro"}, {num:"02", nome:"Fevereiro"}, {num:"03", nome:"Março"},
-      {num:"04", nome:"Abril"}, {num:"05", nome:"Maio"}, {num:"06", nome:"Junho"},
-      {num:"07", nome:"Julho"}, {num:"08", nome:"Agosto"}, {num:"09", nome:"Setembro"},
-      {num:"10", nome:"Outubro"}, {num:"11", nome:"Novembro"}, {num:"12", nome:"Dezembro"}
+      {num: "01", nome: "Janeiro"}, {num: "02", nome: "Fevereiro"}, {num: "03", nome: "Março"},
+      {num: "04", nome: "Abril"}, {num: "05", nome: "Maio"}, {num: "06", nome: "Junho"},
+      {num: "07", nome: "Julho"}, {num: "08", nome: "Agosto"}, {num: "09", nome: "Setembro"},
+      {num: "10", nome: "Outubro"}, {num: "11", nome: "Novembro"}, {num: "12", nome: "Dezembro"}
     ];
 
     const categorias = {
       "Ativo": ["Conta Corrente", "Aplicação", "Termo", "Depósitos Judiciais"],
-      "Passivo": [
-        "Fornecedores Diversos",
-        "Obrigações com Pessoal",
-        "Encargos Sociais",
-        "Impostos e Contribuições a Recolher",
-        "Impostos Retidos a Recolher - PJ"
-      ]
-    };
-
-    const subcategorias = {
-      "Obrigações com Pessoal": [
-        "Salários e Ordenados a Pagar","Férias","Rescisões a Pagar",
-        "Pensão Alimentícia a Pagar","Mensalidade Sindical a Pagar",
-        "Vale Transporte","Diárias de Viagens a pagar","Plano de Saúde a pagar",
-        "Plano Odontológico a pagar","Empréstimo Consignado a Pagar",
-        "Acordos Judiciais e trabalhistas","Convênios a Pagar"
-      ],
-      "Encargos Sociais": ["INSS a Recolher","FGTS a Recolher"],
-      "Impostos e Contribuições a Recolher": ["IRRF a Recolher sobre Salários","PIS a Recolher Sobre Salário"],
-      "Impostos Retidos a Recolher - PJ": ["ISS Retido a Recolher - PJ","IR Retido a Recolher - PJ","PIS/COFINS/CSLL Retido a Recolher - PJ"]
+      "Passivo": {
+        "Fornecedores Diversos": [],
+        "Obrigações com Pessoal": [
+          "Salários e Ordenados a Pagar", "Férias", "Rescisões a Pagar",
+          "Pensão Alimentícia a Pagar", "Mensalidade Sindical a Pagar",
+          "Vale Transporte", "Diárias de Viagens a pagar", "Plano de Saúde a pagar",
+          "Plano Odontológico a pagar", "Empréstimo Consignado a Pagar",
+          "Acordos Judiciais e trabalhistas", "Convênios a Pagar"
+        ],
+        "Encargos Sociais": ["INSS a Recolher", "FGTS a Recolher"],
+        "Impostos e Contribuições a Recolher": ["IRRF a Recolher sobre Salários", "PIS a Recolher Sobre Salário"],
+        "Impostos Retidos a Recolher - PJ": ["ISS Retido a Recolher - PJ", "IR Retido a Recolher - PJ", "PIS/COFINS/CSLL Retido a Recolher - PJ"]
+      }
     };
 
     function abrirCentro(centro) {
@@ -120,46 +114,69 @@
       categoriaAtual = categoria;
       const conteudo = document.getElementById("conteudo");
       conteudo.innerHTML = `<h2>${centroAtual} - ${anoAtual} - ${nomeDoMes(mesAtual)} - ${categoria}</h2>`;
+      
+      const subitemsOuSubcategorias = categorias[categoria];
 
-      if(subcategorias[categoriaAtual]){
-        subcategorias[categoriaAtual].forEach(subitem => {
-          const chave = `${centroAtual}_${anoAtual}_${mesAtual}_${categoriaAtual}_${subitem}`;
-          const valor = localStorage.getItem(chave) || "";
-          conteudo.innerHTML += `<div class="subitem">
-            <label>${subitem}</label><br>
-            <textarea id="${chave}">${valor}</textarea>
-          </div>`;
+      if (typeof subitemsOuSubcategorias === 'object' && !Array.isArray(subitemsOuSubcategorias)) {
+        // Se for um objeto (como 'Passivo'), mostra os botões de subcategorias
+        Object.keys(subitemsOuSubcategorias).forEach(subcategoria => {
+          conteudo.innerHTML += `<button onclick="abrirSubcategoria('${categoria}', '${subcategoria}')">${subcategoria}</button><br>`;
         });
+        conteudo.innerHTML += `<br><button onclick="abrirMes('${mesAtual}')">Voltar</button>`;
       } else {
-        categorias[categoriaAtual].forEach(subitem => {
-          const chave = `${centroAtual}_${anoAtual}_${mesAtual}_${categoriaAtual}_${subitem}`;
+        // Se for um array, mostra os campos de texto
+        subitemsOuSubcategorias.forEach(subitem => {
+          const chave = `${centroAtual}_${anoAtual}_${mesAtual}_${categoria}_${subitem}`;
           const valor = localStorage.getItem(chave) || "";
           conteudo.innerHTML += `<div class="subitem">
             <label>${subitem}</label><br>
             <textarea id="${chave}">${valor}</textarea>
           </div>`;
         });
+        conteudo.innerHTML += `<button onclick="salvarCategoria()">Salvar</button> `;
+        conteudo.innerHTML += `<button onclick="abrirMes('${mesAtual}')">Voltar</button>`;
+        conteudo.innerHTML += `<div id="resultado"></div>`;
       }
+    }
 
-      conteudo.innerHTML += `<button onclick="salvarCategoria()">Salvar</button> `;
-      conteudo.innerHTML += `<button onclick="abrirMes('${mesAtual}')">Voltar</button>`;
+    function abrirSubcategoria(categoriaPai, subcategoria) {
+      subcategoriaAtual = subcategoria;
+      const conteudo = document.getElementById("conteudo");
+      conteudo.innerHTML = `<h2>${centroAtual} - ${anoAtual} - ${nomeDoMes(mesAtual)} - ${subcategoria}</h2>`;
+      
+      const items = categorias[categoriaPai][subcategoria];
+      items.forEach(item => {
+        const chave = `${centroAtual}_${anoAtual}_${mesAtual}_${subcategoria}_${item}`;
+        const valor = localStorage.getItem(chave) || "";
+        conteudo.innerHTML += `<div class="subitem">
+          <label>${item}</label><br>
+          <textarea id="${chave}">${valor}</textarea>
+        </div>`;
+      });
+      
+      conteudo.innerHTML += `<button onclick="salvarSubcategoria()">Salvar</button> `;
+      conteudo.innerHTML += `<button onclick="abrirCategoria('${categoriaPai}')">Voltar</button>`;
       conteudo.innerHTML += `<div id="resultado"></div>`;
     }
 
     function salvarCategoria() {
-      if(subcategorias[categoriaAtual]){
-        subcategorias[categoriaAtual].forEach(subitem => {
-          const chave = `${centroAtual}_${anoAtual}_${mesAtual}_${categoriaAtual}_${subitem}`;
-          const valor = document.getElementById(chave).value;
-          localStorage.setItem(chave, valor);
-        });
-      } else {
-        categorias[categoriaAtual].forEach(subitem => {
-          const chave = `${centroAtual}_${anoAtual}_${mesAtual}_${categoriaAtual}_${subitem}`;
-          const valor = document.getElementById(chave).value;
-          localStorage.setItem(chave, valor);
-        });
-      }
+      // Lógica para salvar a categoria (se não tiver subcategorias)
+      categorias[categoriaAtual].forEach(subitem => {
+        const chave = `${centroAtual}_${anoAtual}_${mesAtual}_${categoriaAtual}_${subitem}`;
+        const valor = document.getElementById(chave).value;
+        localStorage.setItem(chave, valor);
+      });
+      document.getElementById("resultado").textContent = "Análise salva com sucesso!";
+    }
+
+    function salvarSubcategoria() {
+      // Lógica para salvar a subcategoria
+      const categoriaPai = Object.keys(categorias).find(key => categorias[key][subcategoriaAtual]);
+      categorias[categoriaPai][subcategoriaAtual].forEach(item => {
+        const chave = `${centroAtual}_${anoAtual}_${mesAtual}_${subcategoriaAtual}_${item}`;
+        const valor = document.getElementById(chave).value;
+        localStorage.setItem(chave, valor);
+      });
       document.getElementById("resultado").textContent = "Análise salva com sucesso!";
     }
 
@@ -168,6 +185,7 @@
       anoAtual = null;
       mesAtual = null;
       categoriaAtual = null;
+      subcategoriaAtual = null;
       document.getElementById("conteudo").innerHTML = `
         <button onclick="abrirCentro('SEDE')">SEDE</button>
         <button onclick="abrirCentro('EMSERH')">EMSERH</button>`;
