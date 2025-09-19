@@ -24,10 +24,19 @@
     button:hover {
       background-color: #28a745;
     }
-    p {
-      background: #eef;
+    textarea {
+      width: 100%;
+      height: 120px;
+      padding: 8px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+    }
+    #resultado {
+      background-color: #eef;
       padding: 10px;
       border-radius: 5px;
+      margin-top: 10px;
     }
   </style>
 </head>
@@ -39,26 +48,30 @@
   </div>
 
   <script>
-    // Estrutura de análises (preencha os textos)
-    const analises = {
-      SEDE: {
-        "2024": { "01": "Janeiro/2024: análise SEDE", "02": "Fevereiro/2024: análise SEDE" },
-        "2025": { "01": "Janeiro/2025: análise SEDE" }
-      },
-      EMSERH: {
-        "2024": { "01": "Janeiro/2024: análise EMSERH" },
-        "2025": { "01": "Janeiro/2025: análise EMSERH" }
-      }
-    };
-
     let centroAtual = null;
     let anoAtual = null;
+    let mesAtual = null;
+
+    const anos = ["2024", "2025"];
+    const meses = [
+      {num:"01", nome:"Janeiro"},
+      {num:"02", nome:"Fevereiro"},
+      {num:"03", nome:"Março"},
+      {num:"04", nome:"Abril"},
+      {num:"05", nome:"Maio"},
+      {num:"06", nome:"Junho"},
+      {num:"07", nome:"Julho"},
+      {num:"08", nome:"Agosto"},
+      {num:"09", nome:"Setembro"},
+      {num:"10", nome:"Outubro"},
+      {num:"11", nome:"Novembro"},
+      {num:"12", nome:"Dezembro"}
+    ];
 
     function abrirCentro(centro) {
       centroAtual = centro;
       const conteudo = document.getElementById("conteudo");
       conteudo.innerHTML = `<h2>${centro} - Selecione o ano</h2>`;
-      const anos = Object.keys(analises[centro]);
       anos.forEach(ano => {
         conteudo.innerHTML += `<button onclick="abrirAno('${ano}')">${ano}</button> `;
       });
@@ -67,35 +80,45 @@
 
     function abrirAno(ano) {
       anoAtual = ano;
-      const meses = Object.keys(analises[centroAtual][ano]);
       const conteudo = document.getElementById("conteudo");
       conteudo.innerHTML = `<h2>${centroAtual} - ${ano} - Selecione o mês</h2>`;
-      meses.forEach(mes => {
-        const nomeMes = nomeDoMes(mes);
-        conteudo.innerHTML += `<button onclick="verAnalise('${mes}')">${nomeMes}</button> `;
+      meses.forEach(m => {
+        conteudo.innerHTML += `<button onclick="abrirMes('${m.num}')">${m.nome}</button> `;
       });
       conteudo.innerHTML += `<br><br><button onclick="abrirCentro(centroAtual)">Voltar</button>`;
     }
 
-    function verAnalise(mes) {
-      const texto = analises[centroAtual][anoAtual][mes];
+    function abrirMes(mes) {
+      mesAtual = mes;
+      const chave = `${centroAtual}_${anoAtual}_${mes}`;
       const conteudo = document.getElementById("conteudo");
+      const textoSalvo = localStorage.getItem(chave) || "";
       conteudo.innerHTML = `<h2>${centroAtual} - ${anoAtual} - ${nomeDoMes(mes)}</h2>
-                            <p>${texto}</p>
-                            <button onclick="abrirAno('${anoAtual}')">Voltar</button>`;
+        <textarea id="analise">${textoSalvo}</textarea><br>
+        <button onclick="salvarAnalise()">Salvar</button>
+        <button onclick="abrirAno('${anoAtual}')">Voltar</button>
+        <div id="resultado"></div>`;
+    }
+
+    function salvarAnalise() {
+      const texto = document.getElementById("analise").value;
+      const chave = `${centroAtual}_${anoAtual}_${mesAtual}`;
+      localStorage.setItem(chave, texto);
+      document.getElementById("resultado").textContent = "Análise salva com sucesso!";
     }
 
     function voltarInicio() {
       centroAtual = null;
       anoAtual = null;
-      document.getElementById("conteudo").innerHTML = `<button onclick="abrirCentro('SEDE')">SEDE</button>
-                                                        <button onclick="abrirCentro('EMSERH')">EMSERH</button>`;
+      mesAtual = null;
+      document.getElementById("conteudo").innerHTML = `
+        <button onclick="abrirCentro('SEDE')">SEDE</button>
+        <button onclick="abrirCentro('EMSERH')">EMSERH</button>`;
     }
 
     function nomeDoMes(numero) {
-      const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho",
-                     "Agosto","Setembro","Outubro","Novembro","Dezembro"];
-      return meses[parseInt(numero)-1];
+      const m = meses.find(x => x.num === numero);
+      return m ? m.nome : numero;
     }
   </script>
 </body>
